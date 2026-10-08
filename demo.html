@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄专注 · 静态 UI Demo</title>
+<style>
+  /* ===== 设计规范 Token（对应 design/设计规范.md）===== */
+  :root {
+    --primary-500: #FF6B35;
+    --primary-600: #E85B2C;
+    --primary-100: #FFE7DC;
+    --secondary-500: #4A90D9;
+    --secondary-600: #3A78B8;
+    --secondary-100: #E3EEF9;
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --text-primary: #2B2B2B;
+    --text-secondary: #8A8A8A;
+    --text-disabled: #C0BFBB;
+    --border: #E8E6E1;
+    --divider: #F0EEE9;
+    --success: #4CAF50;
+    --warning: #F5A623;
+    --danger: #E53935;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", SFMono-Regular, Menlo, Consolas, "Roboto Mono", monospace;
+
+    --radius-s: 8px;
+    --radius-m: 12px;
+    --radius-l: 16px;
+    --radius-full: 999px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: #EAE8E3;
+    color: var(--text-primary);
+    padding: 48px 24px 80px;
+  }
+
+  .demo-container { max-width: 1240px; margin: 0 auto; }
+
+  .demo-header { margin-bottom: 40px; }
+  .demo-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .demo-header p { font-size: 15px; color: var(--text-secondary); }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 40px 0 16px;
+    padding-top: 24px;
+    border-top: 1px solid #D8D5CE;
+  }
+
+  /* ===== 屏幕网格 ===== */
+  .screens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+  }
+
+  .screen { display: flex; flex-direction: column; align-items: center; }
+  .screen-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    align-self: center;
+  }
+
+  /* ===== 浏览器窗口外框 ===== */
+  .window {
+    width: 360px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+  .window-bar {
+    height: 36px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 6px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #FC615D; }
+  .dot-y { background: #FDBC40; }
+  .dot-g { background: #34C749; }
+
+  .window-body {
+    padding: 24px 16px 28px;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+  }
+
+  /* ===== 计时页面 ===== */
+  .timer-title { font-size: 24px; font-weight: 600; align-self: flex-start; }
+
+  .timer-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin: 8px 0;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 14px;
+    border-radius: var(--radius-full);
+  }
+  .tag-primary { background: var(--primary-100); color: var(--primary-600); }
+  .tag-secondary { background: var(--secondary-100); color: var(--secondary-600); }
+  .tag-neutral { background: #EFEDE9; color: var(--text-secondary); }
+  .tag-success { background: #E6F4E7; color: var(--success); }
+
+  .ring-wrap { position: relative; width: 240px; height: 240px; }
+  .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--divider); stroke-width: 8; }
+  .ring-bar {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 703.72;
+  }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-time {
+    font-family: var(--font-mono);
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+  .ring-phase { font-size: 14px; color: var(--text-secondary); margin-top: 10px; }
+
+  .controls { display: flex; align-items: center; gap: 12px; }
+  .stat { font-size: 14px; color: var(--text-secondary); }
+  .stat-num { color: var(--success); font-weight: 500; }
+
+  .settings-link {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: var(--primary-500);
+    cursor: default;
+  }
+
+  /* ===== 按钮 ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: var(--radius-m);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: default;
+    font-family: var(--font-sans);
+  }
+  .btn-primary { background: var(--primary-500); color: #fff; height: 48px; padding: 0 24px; }
+  .btn-primary:hover { background: var(--primary-600); }
+  .btn-text { background: transparent; color: var(--primary-500); height: 48px; padding: 0 16px; }
+  .btn-text:hover { color: var(--primary-600); }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+  .btn-secondary:hover { border-color: var(--primary-500); color: var(--primary-500); }
+  .btn-text-sm { background: transparent; color: var(--primary-500); height: 32px; padding: 0 8px; font-size: 15px; }
+
+  /* ===== 设置页面 ===== */
+  .settings-body { align-items: stretch; }
+  .settings-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .settings-title { font-size: 24px; font-weight: 600; }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-l);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+  .setting-row + .setting-row { border-top: 1px solid var(--divider); }
+  .setting-row label { font-size: 16px; color: var(--text-primary); }
+  .setting-unit { font-size: 14px; color: var(--text-secondary); }
+
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .stepper-input {
+    width: 44px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .switch {
+    width: 44px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: #D9D7D2;
+    position: relative;
+    display: inline-block;
+  }
+  .switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .switch.on { background: var(--primary-500); }
+  .switch.on .switch-knob { left: 22px; }
+
+  .select {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    background: var(--surface);
+  }
+  .select .arrow { color: var(--text-secondary); }
+
+  .version {
+    font-size: 12px;
+    color: var(--text-disabled);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ===== 规范速览 ===== */
+  .swatches { display: flex; flex-wrap: wrap; gap: 16px; }
+  .swatch {
+    width: 120px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: 10px;
+  }
+  .swatch-color { display: block; height: 48px; border-radius: var(--radius-s); margin-bottom: 8px; }
+  .swatch-color.outline { border: 1px solid var(--border); }
+  .swatch-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .swatch-hex { font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); }
+
+  .comp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .comp-label { font-size: 13px; color: var(--text-secondary); width: 100%; margin-bottom: -8px; }
+
+  .input-demo {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: var(--text-disabled);
+  }
+  .input-demo:focus { outline: none; border-color: var(--primary-500); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15); }
+</style>
+</head>
+<body>
+<div class="demo-container">
+
+  <header class="demo-header">
+    <h1>番茄专注 · 静态 UI Demo</h1>
+    <p>纯静态展示，不含任何功能逻辑与数据交互。配色、字体、组件均取自 <code>design/设计规范.md</code> 与 <code>design/UI设计文档.md</code>。</p>
+  </header>
+
+  <!-- ===================== 一、主计时页面 ===================== -->
+  <h2 class="section-title">一、主计时页面（5 种状态）</h2>
+  <div class="screens-grid">
+
+    <!-- 未开始 -->
+    <figure class="screen">
+      <figcaption class="screen-label">状态 1 · 未开始</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body">
+          <div class="timer-title">番茄专注 🍅</div>
+          <div class="timer-main">
+            <span class="tag tag-neutral">准备开始</span>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 240 240">
+                <circle class="ring-track" cx="120" cy="120" r="112"/>
+                <circle class="ring-bar" cx="120" cy="120" r="112" style="stroke: var(--primary-500); stroke-dashoffset: 0;"/>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-time">25:00</div>
+                <div class="ring-phase">专注</div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-primary">▶ 开始</button>
+              <button class="btn btn-text">↺ 重置</button>
+            </div>
+            <div class="stat">今日已完成 <span class="stat-num">🍅 × 0</span></div>
+          </div>
+          <button class="settings-link">⚙ 设置</button>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 专注中 -->
+    <figure class="screen">
+      <figcaption class="screen-label">状态 2 · 专注中</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body">
+          <div class="timer-title">番茄专注 🍅</div>
+          <div class="timer-main">
+            <span class="tag tag-primary">专注中</span>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 240 240">
+                <circle class="ring-track" cx="120" cy="120" r="112"/>
+                <circle class="ring-bar" cx="120" cy="120" r="112" style="stroke: var(--primary-500); stroke-dashoffset: 267;"/>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-time">15:32</div>
+                <div class="ring-phase">专注</div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-primary">⏸ 暂停</button>
+              <button class="btn btn-text">↺ 重置</button>
+            </div>
+            <div class="stat">今日已完成 <span class="stat-num">🍅 × 3</span></div>
+          </div>
+          <button class="settings-link">⚙ 设置</button>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 暂停 -->
+    <figure class="screen">
+      <figcaption class="screen-label">状态 3 · 暂停</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body">
+          <div class="timer-title">番茄专注 🍅</div>
+          <div class="timer-main">
+            <span class="tag tag-neutral">已暂停</span>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 240 240">
+                <circle class="ring-track" cx="120" cy="120" r="112"/>
+                <circle class="ring-bar" cx="120" cy="120" r="112" style="stroke: var(--primary-500); stroke-dashoffset: 267;"/>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-time">15:32</div>
+                <div class="ring-phase">专注</div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-primary">▶ 继续</button>
+              <button class="btn btn-text">↺ 重置</button>
+            </div>
+            <div class="stat">今日已完成 <span class="stat-num">🍅 × 3</span></div>
+          </div>
+          <button class="settings-link">⚙ 设置</button>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 休息中 -->
+    <figure class="screen">
+      <figcaption class="screen-label">状态 4 · 休息中</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body">
+          <div class="timer-title">番茄专注 🍅</div>
+          <div class="timer-main">
+            <span class="tag tag-secondary">休息中</span>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 240 240">
+                <circle class="ring-track" cx="120" cy="120" r="112"/>
+                <circle class="ring-bar" cx="120" cy="120" r="112" style="stroke: var(--secondary-500); stroke-dashoffset: 253;"/>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-time">03:12</div>
+                <div class="ring-phase">休息</div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-primary">⏸ 暂停</button>
+              <button class="btn btn-text">↺ 重置</button>
+            </div>
+            <div class="stat">今日已完成 <span class="stat-num">🍅 × 3</span></div>
+          </div>
+          <button class="settings-link">⚙ 设置</button>
+        </div>
+      </div>
+    </figure>
+
+    <!-- 完成 -->
+    <figure class="screen">
+      <figcaption class="screen-label">状态 5 · 完成</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body">
+          <div class="timer-title">番茄专注 🍅</div>
+          <div class="timer-main">
+            <span class="tag tag-success">完成 🎉</span>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 240 240">
+                <circle class="ring-track" cx="120" cy="120" r="112"/>
+              </svg>
+              <div class="ring-center">
+                <div class="ring-time">00:00</div>
+                <div class="ring-phase">专注完成</div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn btn-primary">▶ 开始</button>
+              <button class="btn btn-text">↺ 重置</button>
+            </div>
+            <div class="stat">今日已完成 <span class="stat-num">🍅 × 4</span></div>
+          </div>
+          <button class="settings-link">⚙ 设置</button>
+        </div>
+      </div>
+    </figure>
+
+  </div>
+
+  <!-- ===================== 二、设置页面 ===================== -->
+  <h2 class="section-title">二、设置页面</h2>
+  <div class="screens-grid">
+    <figure class="screen">
+      <figcaption class="screen-label">设置页 · 完整布局</figcaption>
+      <div class="window">
+        <div class="window-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="window-body settings-body">
+          <div class="settings-header">
+            <button class="btn btn-text-sm">← 返回</button>
+            <span class="settings-title">设置</span>
+          </div>
+
+          <div class="card">
+            <div class="card-title">时长设置</div>
+            <div class="setting-row">
+              <label>专注时长</label>
+              <div class="stepper">
+                <span class="stepper-btn">−</span>
+                <span class="stepper-input">25</span>
+                <span class="stepper-btn">+</span>
+              </div>
+              <span class="setting-unit">分钟</span>
+            </div>
+            <div class="setting-row">
+              <label>休息时长</label>
+              <div class="stepper">
+                <span class="stepper-btn">−</span>
+                <span class="stepper-input">5</span>
+                <span class="stepper-btn">+</span>
+              </div>
+              <span class="setting-unit">分钟</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">提示音</div>
+            <div class="setting-row">
+              <label>提示音</label>
+              <span class="switch on"><span class="switch-knob"></span></span>
+            </div>
+            <div class="setting-row">
+              <label>音效</label>
+              <span class="select">音效 A <span class="arrow">▾</span></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">数据</div>
+            <div class="setting-row">
+              <label>数据导出</label>
+              <button class="btn btn-secondary">导出</button>
+            </div>
+            <div class="setting-row">
+              <label>数据导入</label>
+              <button class="btn btn-secondary">导入</button>
+            </div>
+          </div>
+
+          <div class="version">版本 v0.1</div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <!-- ===================== 三、设计规范速览 ===================== -->
+  <h2 class="section-title">三、设计规范速览</h2>
+
+  <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">配色方案</h3>
+  <div class="swatches">
+    <div class="swatch"><span class="swatch-color" style="background:#FF6B35"></span><div class="swatch-name">Primary-500</div><div class="swatch-hex">#FF6B35</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#E85B2C"></span><div class="swatch-name">Primary-600</div><div class="swatch-hex">#E85B2C</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#FFE7DC"></span><div class="swatch-name">Primary-100</div><div class="swatch-hex">#FFE7DC</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#4A90D9"></span><div class="swatch-name">Secondary-500</div><div class="swatch-hex">#4A90D9</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#3A78B8"></span><div class="swatch-name">Secondary-600</div><div class="swatch-hex">#3A78B8</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#F7F6F3"></span><div class="swatch-name">Bg</div><div class="swatch-hex">#F7F6F3</div></div>
+    <div class="swatch"><span class="swatch-color outline" style="background:#FFFFFF"></span><div class="swatch-name">Surface</div><div class="swatch-hex">#FFFFFF</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#2B2B2B"></span><div class="swatch-name">Text-Primary</div><div class="swatch-hex">#2B2B2B</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#8A8A8A"></span><div class="swatch-name">Text-Secondary</div><div class="swatch-hex">#8A8A8A</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#E8E6E1"></span><div class="swatch-name">Border</div><div class="swatch-hex">#E8E6E1</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#4CAF50"></span><div class="swatch-name">Success</div><div class="swatch-hex">#4CAF50</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#F5A623"></span><div class="swatch-name">Warning</div><div class="swatch-hex">#F5A623</div></div>
+    <div class="swatch"><span class="swatch-color" style="background:#E53935"></span><div class="swatch-name">Danger</div><div class="swatch-hex">#E53935</div></div>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:600;margin:28px 0 12px;">组件样式</h3>
+  <div class="comp-row">
+    <span class="comp-label">按钮</span>
+    <button class="btn btn-primary">主按钮</button>
+    <button class="btn btn-secondary">次按钮</button>
+    <button class="btn btn-text">文字按钮</button>
+    <button class="btn btn-primary" style="background:#E0DFDC;color:#B0AFAC;">禁用</button>
+  </div>
+  <div class="comp-row">
+    <span class="comp-label">开关</span>
+    <span class="switch on"><span class="switch-knob"></span></span>
+    <span class="switch"><span class="switch-knob"></span></span>
+  </div>
+  <div class="comp-row">
+    <span class="comp-label">输入框</span>
+    <div class="input-demo" tabindex="0">输入框（占位文本）</div>
+  </div>
+
+</div>
+</body>
+</html>

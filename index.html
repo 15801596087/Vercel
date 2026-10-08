@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>番茄专注</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- 主计时视图 -->
+    <div id="view-timer" class="view">
+      <div class="timer-title">番茄专注 🍅</div>
+
+      <div class="timer-main">
+        <span id="status-tag" class="tag tag-neutral">准备开始</span>
+
+        <div class="ring-wrap">
+          <svg viewBox="0 0 240 240">
+            <circle class="ring-track" cx="120" cy="120" r="112"/>
+            <circle id="ring-bar" class="ring-bar" cx="120" cy="120" r="112" style="stroke: var(--primary-500); stroke-dashoffset: 0;"/>
+          </svg>
+          <div class="ring-center">
+            <div id="timer-time" class="ring-time">25:00</div>
+            <div id="timer-phase" class="ring-phase">专注</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="btn-start" class="btn btn-primary">▶ 开始</button>
+          <button id="btn-reset" class="btn btn-text">↺ 重置</button>
+        </div>
+
+        <div class="stat">今日已完成 <span id="stat-count" class="stat-num">🍅 × 0</span></div>
+      </div>
+
+      <button id="btn-settings" class="settings-link">⚙ 设置</button>
+    </div>
+
+    <!-- 设置视图（步骤 5 补全） -->
+    <div id="view-settings" class="view" hidden>
+      <div class="settings-header">
+        <button id="btn-back" class="btn btn-text-sm" type="button">← 返回</button>
+        <span class="settings-title">设置</span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">时长设置</div>
+        <div class="setting-row">
+          <label for="input-focus">专注时长</label>
+          <div class="stepper">
+            <button id="focus-minus" class="stepper-btn" type="button" aria-label="专注时长减 1 分钟">−</button>
+            <input id="input-focus" class="stepper-input" type="text" inputmode="numeric" value="25">
+            <button id="focus-plus" class="stepper-btn" type="button" aria-label="专注时长加 1 分钟">+</button>
+          </div>
+          <span class="setting-unit">分钟</span>
+        </div>
+        <div class="setting-row">
+          <label for="input-break">休息时长</label>
+          <div class="stepper">
+            <button id="break-minus" class="stepper-btn" type="button" aria-label="休息时长减 1 分钟">−</button>
+            <input id="input-break" class="stepper-input" type="text" inputmode="numeric" value="5">
+            <button id="break-plus" class="stepper-btn" type="button" aria-label="休息时长加 1 分钟">+</button>
+          </div>
+          <span class="setting-unit">分钟</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">提示音</div>
+        <div class="setting-row">
+          <label for="sound-switch">提示音</label>
+          <button id="sound-switch" class="switch on" type="button" role="switch" aria-checked="true" aria-label="提示音开关">
+            <span class="switch-knob"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">数据</div>
+        <div class="setting-row">
+          <label>数据导出</label>
+          <button id="btn-export" class="btn btn-secondary" type="button">导出</button>
+        </div>
+        <div class="setting-row">
+          <label>数据导入</label>
+          <button id="btn-import" class="btn btn-secondary" type="button">导入</button>
+        </div>
+        <input id="input-import" type="file" accept=".json,application/json" hidden>
+      </div>
+
+      <div class="version">版本 v0.1</div>
+    </div>
+
+  </div>
+
+  <script src="js/constants.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
